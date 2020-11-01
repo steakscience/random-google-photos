@@ -12,15 +12,13 @@
  */
 
 // Name of the folder that contains your photos
+// Do not include the path, ie. "Photos/Dog", just use "Dog"
 // (leave blank to search your top-level folder)
 var folderName = "";
 
 // Email parameters
 var to      = "you@domain.com"      // comma-separated list of email addresses
 var subject = "Daily Random Image"  // subject line
-var body    = "<p>Your random image:</p>" +  // body of the email
-    "<p><img src='cid:imageBlob' style='max-width: 100%;' /></p>" +
-    "<p>Like this one? See it <a href='{picture-link}'>here</a>.</p>";
 
 // Valid filetypes to search for
 var fileTypes = [MimeType.JPEG, MimeType.GIF, MimeType.PNG];
@@ -51,9 +49,6 @@ function sendRandomImage() {
     MailApp.sendEmail({
         to: to,
         subject: subject,
-        htmlBody: body.replace("{picture-link}", file.getUrl()),
-        inlineImages: {
-            imageBlob: file.getBlob()
-        }
+        attachments: [file.getBlob()],
     });
 }
