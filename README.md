@@ -4,6 +4,9 @@ This script emails you a random image from a Google Drive folder at a set interv
 
 **NOTE:** this script is based off of [dfkoz's gist](https://gist.github.com/dfkoz/5860786). I updated it to work with the most recent version of the Google Apps Script API.
 
+Ben Lind's script sends images inline. In this version, images are sent as attachments.
+
+
 # Usage
 
 0. Upload your images to Google Drive.
