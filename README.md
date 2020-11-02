@@ -5,7 +5,7 @@ This script emails you a random image from a Google Drive folder at a set interv
 **Note:** 
 This script is based off of [dfkoz's](https://gist.github.com/dfkoz/5860786) and Ben Lind's [gist](https://github.com/benlind/random-image-emailer).
 
-Ben Lind's script sends images inline. In this version, images are sent as attachments.
+Ben Lind's script sends images inline. In this version, images are sent as attachments. This is helpful when integrating with IFTTT which can use the attachment as part of its recipe.
 
 
 # Usage
