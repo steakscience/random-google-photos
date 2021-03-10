@@ -1,54 +1,61 @@
-/**
- * HOW TO USE THIS SCRIPT:
- * 0. Upload your images to Google Drive.
- * 1. Log into Google Drive, and click CREATE -> Script -> Blank Project.
- * 2. Delete all of the default code, and paste this code into your project.
- * 3. Customize the email parameters below to your liking (note that the quotes
- *    around each line are very important).
- * 4. Test the script by selecting Run -> sendRandomImage. You should receive an
- *    email with a random image.
- * 5. Click Resources -> Current Project's Triggers, and set up the email to run
- *    as often as you would like.
- */
+// Send random Google Photos image in an email
 
-// Name of the folder that contains your photos
-// Do not include the path, ie. "Photos/Dog", just use "Dog"
-// (leave blank to search your top-level folder)
-var folderName = "";
+// Here, we send it to IFTTT as an attachment
+// You can then use IFTTT to do whatever with the image
+// Image date is also included in the body and can be used
 
-// Email parameters
-var to      = "you@domain.com"      // comma-separated list of email addresses
-var subject = "Daily Random Image"  // subject line
-
-// Valid filetypes to search for
-var fileTypes = [MimeType.JPEG, MimeType.GIF, MimeType.PNG];
-
-/**
- * Emails a random image in a Google Drive folder to an email address.
- */
 function sendRandomImage() {
-    var folders = DriveApp.getFoldersByName(folderName);
-    if (!folders.hasNext()) return;
-    var folder = folders.next();
-    var results = [];
+  // Google Photos Album ID
+  // Can be obtained using the API tester on the right
+  // https://developers.google.com/photos/library/reference/rest/v1/albums/list
+  var albumId = "";
+
+  var headers = {"Authorization": "Bearer " + ScriptApp.getOAuthToken()};
+  var url = "https://photoslibrary.googleapis.com/v1/mediaItems:search";
+  var mediaItems = [];
+  var pageToken = "";
+  do 
+  {
+    var params = {
+      method: "post",
+      headers: headers,
+      contentType: "application/json",
+      payload: JSON.stringify({albumId: albumId, pageSize: 100, pageToken: pageToken}),
+    }
+    var res = UrlFetchApp.fetch(url, params);
+    var obj = JSON.parse(res.getContentText());
     
-    // Add all files with the correct filetypes to the results
-    fileTypes.forEach(function(type) {
-        var files = folder.getFilesByType(type);
-        while (files.hasNext()) {
-            results.push(files.next());
-        }
-    });
+    Array.prototype.push.apply(mediaItems, obj.mediaItems);
+    
+    pageToken = obj.nextPageToken || "";
 
-    if (results.length == 0) return;  // no results
+  } while (pageToken);
 
-    // Select a random image
-    var file = results[Math.floor(Math.random() * results.length + 1)];
+  var photos = mediaItems;
 
-    // Send an email containing the image
-    MailApp.sendEmail({
-        to: to,
-        subject: subject,
-        attachments: [file.getBlob()],
-    });
-}
+  // Gets random photo
+  var randomPhoto = photos[Math.floor(Math.random() * photos.length)]
+
+  // Gets image creation date
+  var date = randomPhoto.mediaMetadata.creationTime
+
+  // Email parameters
+  var to      = "trigger@applet.ifttt.com"      // comma-separated list of email addresses
+  var subject = "Random Google Photo"  // subject line
+  var body    = `${date}` // email body
+
+  // Takes image URL and converts to blob 
+  // This is necessary to use it as an attachment
+  var randomPhotoBlob = UrlFetchApp
+    .fetch(randomPhoto.baseUrl)
+    .getBlob();
+
+  // Attach img
+  // https://developers.google.com/apps-script/reference/mail/mail-app#advanced-parameters
+  
+  MailApp.sendEmail({
+    to: to,
+    subject: subject,
+    body: body,
+    attachments: [randomPhotoBlob]
+  });
